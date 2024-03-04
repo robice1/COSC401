@@ -22,7 +22,7 @@ def version_space(H, D):
     returns the version space"""
     V = set()
     for h in H:
-        if all (h(x) == y for x, in D):
+        if all (h(x) == y for x, y in D):
             V.add(h)
     return V
 
@@ -33,14 +33,28 @@ def less_general_or_equal(ha, hb, X):
     support_b = {x for x in X if hb(x)}
     return support_a <= support_b
 
-X = list(range(1000))
 
-def h2(x): return x % 2 == 0
-def h3(x): return x % 3 == 0
-def h6(x): return x % 6 == 0
+def decode(code):
+    """Takes a 4-tuple of integers and returns the corresponding hypothesis.
+    The first and last two integers of the tuple correspond to opposing corners of a rectangle."""
+    x1, y1, x2, y2 = code
+    lower_x, upper_x = min(x1, x2), max(x1, x2)
+    lower_y, upper_y = min(y1, y2), max(y1, y2)
+    def h(x):
+        return lower_x <= x[0] <= upper_x and lower_y <= x[1] <= upper_y
+    return h
 
-H = [h2, h3, h6]
+import itertools
 
-for ha in H:
-    for hb in H:
-        print(ha.__name__, "<=", hb.__name__, "?", less_general_or_equal(ha, hb, X))
+h1 = decode((1, 4, 7, 9))
+h2 = decode((7, 9, 1, 4))
+h3 = decode((1, 9, 7, 4))
+h4 = decode((7, 4, 1, 9))
+
+
+for x in itertools.product(range(-2, 11), repeat=2):
+    if len({h(x) for h in [h1, h2, h3, h4]}) != 1:
+        print("Inconsistent prediction for", x)
+        break
+else:
+    print("OK")
